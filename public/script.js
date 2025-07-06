@@ -1,4 +1,3 @@
-
 // Mobile Navigation
 const hamburger = document.getElementById('hamburger');
 const navMenu = document.getElementById('nav-menu');
@@ -174,19 +173,41 @@ contactForm.addEventListener('submit', (e) => {
         return;
     }
     
-    // Create mailto link
-    const subject = encodeURIComponent('Portfolio Contact Form');
-    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
-    const mailtoLink = `mailto:swathi.uppunuthala@example.com?subject=${subject}&body=${body}`;
+    // Create mailto link with proper encoding
+    const subject = encodeURIComponent('Portfolio Contact Form - Message from ' + name);
+    const body = encodeURIComponent(`Hello Swathi,
+
+You have received a new message from your portfolio website:
+
+Name: ${name}
+Email: ${email}
+
+Message:
+${message}
+
+---
+This message was sent from your portfolio contact form.`);
     
-    // Open email client
-    window.open(mailtoLink);
+    const mailtoLink = `mailto:swathiuppunuthla35@gmail.com?subject=${subject}&body=${body}`;
     
-    // Reset form
-    contactForm.reset();
-    
-    // Show success message
-    showNotification('Thank you for your message! Your email client should open now.');
+    // Try to open email client
+    try {
+        window.open(mailtoLink);
+        
+        // Reset form after successful submission
+        contactForm.reset();
+        
+        // Show success message
+        showNotification('Thank you for your message! Your email client should open now to send the message.');
+    } catch (error) {
+        // Fallback: copy to clipboard if email client fails
+        const messageText = `Name: ${name}\nEmail: ${email}\nMessage: ${message}`;
+        navigator.clipboard.writeText(messageText).then(() => {
+            showNotification('Message copied to clipboard! Please send it manually to swathiuppunuthla35@gmail.com');
+        }).catch(() => {
+            showNotification('Please send your message manually to swathiuppunuthla35@gmail.com');
+        });
+    }
 });
 
 function isValidEmail(email) {
