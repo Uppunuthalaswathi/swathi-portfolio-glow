@@ -16,6 +16,33 @@ document.querySelectorAll('.nav-link').forEach(link => {
     });
 });
 
+// Resume Upload Functionality
+const resumeUpload = document.getElementById('resume-upload');
+const uploadBtn = document.querySelector('.resume-upload-btn');
+const downloadBtn = document.getElementById('download-resume');
+let uploadedResume = null;
+
+resumeUpload.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type === 'application/pdf') {
+        uploadedResume = file;
+        
+        // Hide upload button and show download button
+        uploadBtn.style.display = 'none';
+        downloadBtn.style.display = 'inline-flex';
+        
+        // Create download URL
+        const url = URL.createObjectURL(file);
+        downloadBtn.href = url;
+        downloadBtn.download = file.name;
+        
+        showNotification(`Resume "${file.name}" uploaded successfully!`);
+    } else {
+        showNotification('Please upload a valid PDF file.');
+        e.target.value = '';
+    }
+});
+
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -138,12 +165,12 @@ contactForm.addEventListener('submit', (e) => {
     
     // Basic validation
     if (!name || !email || !message) {
-        alert('Please fill in all fields.');
+        showNotification('Please fill in all fields.');
         return;
     }
     
     if (!isValidEmail(email)) {
-        alert('Please enter a valid email address.');
+        showNotification('Please enter a valid email address.');
         return;
     }
     
@@ -180,6 +207,8 @@ function showNotification(message) {
         border-radius: 10px;
         z-index: 10000;
         animation: slideIn 0.3s ease-out;
+        max-width: 350px;
+        word-wrap: break-word;
     `;
     
     document.body.appendChild(notification);
@@ -187,7 +216,9 @@ function showNotification(message) {
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease-out forwards';
         setTimeout(() => {
-            document.body.removeChild(notification);
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
         }, 300);
     }, 3000);
 }
@@ -396,3 +427,4 @@ document.head.appendChild(rippleStyle);
 
 console.log('🚀 Portfolio loaded successfully!');
 console.log('💫 Animations and interactions ready!');
+console.log('📁 Resume upload functionality enabled!');

@@ -157,6 +157,10 @@ body {
 .hero-buttons {
     margin-bottom: 2rem;
     animation: slideUp 1s ease-out 0.8s both;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .btn-primary {
@@ -178,6 +182,14 @@ body {
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 20px 40px rgba(0, 212, 255, 0.3);
+}
+
+.resume-upload-btn {
+    background: linear-gradient(45deg, #ff6b35, #f7931e);
+}
+
+.resume-upload-btn:hover {
+    box-shadow: 0 20px 40px rgba(255, 107, 53, 0.3);
 }
 
 .social-links {
@@ -439,7 +451,7 @@ body {
     gap: 1rem;
 }
 
-/* Contact Section */
+/* Contact Section - Fully Responsive */
 .contact-content {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -460,18 +472,25 @@ body {
     gap: 1rem;
     margin-bottom: 1.5rem;
     color: #cccccc;
+    flex-wrap: wrap;
 }
 
 .contact-item i {
     color: #00d4ff;
     font-size: 1.2rem;
     width: 20px;
+    flex-shrink: 0;
+}
+
+.contact-item span {
+    word-break: break-word;
 }
 
 .contact-social {
     display: flex;
     gap: 1rem;
     margin-top: 1rem;
+    flex-wrap: wrap;
 }
 
 .contact-form {
@@ -480,6 +499,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 20px;
     padding: 2rem;
+    width: 100%;
 }
 
 .form-group {
@@ -496,6 +516,7 @@ body {
     color: #ffffff;
     font-size: 1rem;
     transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -649,6 +670,14 @@ body {
         gap: 2rem;
     }
     
+    .contact-info {
+        order: 2;
+    }
+    
+    .contact-form {
+        order: 1;
+    }
+    
     .footer-content {
         flex-direction: column;
         text-align: center;
@@ -670,6 +699,16 @@ body {
     
     .skill-icon {
         font-size: 2rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-primary {
+        width: fit-content;
+        min-width: 200px;
     }
 }
 
@@ -701,5 +740,39 @@ body {
         width: 45px;
         height: 45px;
         font-size: 1rem;
+    }
+    
+    .contact-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .contact-social {
+        justify-content: center;
+    }
+    
+    .footer-links {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+@media (max-width: 360px) {
+    .contact-form {
+        padding: 1rem;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-primary {
+        min-width: 180px;
+        padding: 10px 24px;
+        font-size: 0.9rem;
     }
 }
