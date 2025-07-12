@@ -15,6 +15,47 @@ document.querySelectorAll('.nav-link').forEach(link => {
     });
 });
 
+// Profile Photo Upload Functionality
+const photoUpload = document.getElementById('photo-upload');
+const profileImage = document.getElementById('profile-image');
+const photoDownloadBtn = document.getElementById('download-photo');
+const photoUploadBtn = document.querySelector('.photo-upload-btn');
+let uploadedPhoto = null;
+
+photoUpload.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        uploadedPhoto = file;
+        
+        // Create URL for the uploaded image and display it
+        const imageUrl = URL.createObjectURL(file);
+        profileImage.src = imageUrl;
+        
+        // Show download button
+        photoDownloadBtn.style.display = 'inline-flex';
+        
+        showNotification(`Photo "${file.name}" uploaded successfully!`);
+    } else {
+        showNotification('Please upload a valid image file.');
+        e.target.value = '';
+    }
+});
+
+// Photo download functionality
+photoDownloadBtn.addEventListener('click', function() {
+    if (uploadedPhoto) {
+        const url = URL.createObjectURL(uploadedPhoto);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = uploadedPhoto.name || 'profile-photo.jpg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showNotification('Photo downloaded successfully!');
+    }
+});
+
 // Resume Upload Functionality
 const resumeUpload = document.getElementById('resume-upload');
 const uploadBtn = document.querySelector('.resume-upload-btn');
@@ -30,15 +71,26 @@ resumeUpload.addEventListener('change', function(e) {
         uploadBtn.style.display = 'none';
         downloadBtn.style.display = 'inline-flex';
         
-        // Create download URL
-        const url = URL.createObjectURL(file);
-        downloadBtn.href = url;
-        downloadBtn.download = file.name;
-        
         showNotification(`Resume "${file.name}" uploaded successfully!`);
     } else {
         showNotification('Please upload a valid PDF file.');
         e.target.value = '';
+    }
+});
+
+// Resume download functionality
+downloadBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (uploadedResume) {
+        const url = URL.createObjectURL(uploadedResume);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = uploadedResume.name || 'resume.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showNotification('Resume downloaded successfully!');
     }
 });
 
@@ -153,28 +205,33 @@ document.head.appendChild(style);
 // Initialize particles
 createParticles();
 
-// Contact form
+// Enhanced Contact form with better error handling
 const contactForm = document.getElementById('contact-form');
 contactForm.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const message = document.getElementById('message').value;
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const message = document.getElementById('message').value.trim();
     
-    // Basic validation
+    // Enhanced validation
     if (!name || !email || !message) {
-        showNotification('Please fill in all fields.');
+        showNotification('Please fill in all fields.', 'error');
         return;
     }
     
     if (!isValidEmail(email)) {
-        showNotification('Please enter a valid email address.');
+        showNotification('Please enter a valid email address.', 'error');
         return;
     }
     
-    // Create mailto link with proper encoding
-    const subject = encodeURIComponent('Portfolio Contact Form - Message from ' + name);
+    if (message.length < 10) {
+        showNotification('Please enter a message with at least 10 characters.', 'error');
+        return;
+    }
+    
+    // Create enhanced mailto link
+    const subject = encodeURIComponent(`Portfolio Contact: Message from ${name}`);
     const body = encodeURIComponent(`Hello Swathi,
 
 You have received a new message from your portfolio website:
@@ -186,43 +243,88 @@ Message:
 ${message}
 
 ---
-This message was sent from your portfolio contact form.`);
+This message was sent from your portfolio contact form.
+Please reply to: ${email}`);
     
     const mailtoLink = `mailto:swathiuppunuthla35@gmail.com?subject=${subject}&body=${body}`;
     
     // Try to open email client
     try {
-        window.open(mailtoLink);
+        const mailWindow = window.open(mailtoLink);
         
-        // Reset form after successful submission
-        contactForm.reset();
+        // Check if the window opened successfully
+        setTimeout(() => {
+            if (mailWindow && !mailWindow.closed) {
+                // Email client opened successfully
+                contactForm.reset();
+                showNotification('Thank you for your message! Your email client should open now.', 'success');
+            } else {
+                // Fallback for blocked popups
+                fallbackContactMethod(name, email, message);
+            }
+        }, 1000);
         
-        // Show success message
-        showNotification('Thank you for your message! Your email client should open now to send the message.');
     } catch (error) {
-        // Fallback: copy to clipboard if email client fails
-        const messageText = `Name: ${name}\nEmail: ${email}\nMessage: ${message}`;
-        navigator.clipboard.writeText(messageText).then(() => {
-            showNotification('Message copied to clipboard! Please send it manually to swathiuppunuthla35@gmail.com');
-        }).catch(() => {
-            showNotification('Please send your message manually to swathiuppunuthla35@gmail.com');
-        });
+        // Fallback if mailto fails
+        fallbackContactMethod(name, email, message);
     }
 });
+
+function fallbackContactMethod(name, email, message) {
+    // Create a formatted message for copy to clipboard
+    const messageText = `Name: ${name}
+Email: ${email}
+Message: ${message}
+
+Please send this to: swathiuppunuthla35@gmail.com`;
+    
+    // Try to copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(messageText).then(() => {
+            showNotification('Message copied to clipboard! Please send it manually to swathiuppunuthla35@gmail.com', 'info');
+            contactForm.reset();
+        }).catch(() => {
+            showManualContactInfo(name, email, message);
+        });
+    } else {
+        showManualContactInfo(name, email, message);
+    }
+}
+
+function showManualContactInfo(name, email, message) {
+    const manualMessage = `Please send your message manually to swathiuppunuthla35@gmail.com
+
+Your message:
+Name: ${name}
+Email: ${email}
+Message: ${message}`;
+    
+    showNotification(manualMessage, 'info', 8000);
+    contactForm.reset();
+}
 
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
 
-function showNotification(message) {
+function showNotification(message, type = 'success', duration = 4000) {
     const notification = document.createElement('div');
     notification.textContent = message;
+    
+    // Set colors based on type
+    let bgColor = 'linear-gradient(45deg, #00d4ff, #9933ff)'; // success
+    if (type === 'error') {
+        bgColor = 'linear-gradient(45deg, #ff4757, #ff6b7a)';
+    } else if (type === 'info') {
+        bgColor = 'linear-gradient(45deg, #3742fa, #70a1ff)';
+    }
+    
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: linear-gradient(45deg, #00d4ff, #9933ff);
+        background: ${bgColor};
         color: white;
         padding: 1rem 2rem;
         border-radius: 10px;
@@ -230,6 +332,10 @@ function showNotification(message) {
         animation: slideIn 0.3s ease-out;
         max-width: 350px;
         word-wrap: break-word;
+        white-space: pre-line;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     `;
     
     document.body.appendChild(notification);
@@ -241,7 +347,7 @@ function showNotification(message) {
                 document.body.removeChild(notification);
             }
         }, 300);
-    }, 3000);
+    }, duration);
 }
 
 // Add notification animations
