@@ -19,8 +19,10 @@ document.querySelectorAll('.nav-link').forEach(link => {
 const photoUpload = document.getElementById('photo-upload');
 const profileImage = document.getElementById('profile-image');
 const photoDownloadBtn = document.getElementById('download-photo');
+const photoDeleteBtn = document.getElementById('delete-photo');
 const photoUploadBtn = document.querySelector('.photo-upload-btn');
 let uploadedPhoto = null;
+const defaultPhotoUrl = 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=300&fit=crop&crop=face';
 
 photoUpload.addEventListener('change', function(e) {
     const file = e.target.files[0];
@@ -31,12 +33,13 @@ photoUpload.addEventListener('change', function(e) {
         const imageUrl = URL.createObjectURL(file);
         profileImage.src = imageUrl;
         
-        // Show download button
+        // Show download and delete buttons
         photoDownloadBtn.style.display = 'inline-flex';
+        photoDeleteBtn.style.display = 'inline-flex';
         
         showNotification(`Photo "${file.name}" uploaded successfully!`);
     } else {
-        showNotification('Please upload a valid image file.');
+        showNotification('Please upload a valid image file.', 'error');
         e.target.value = '';
     }
 });
@@ -53,6 +56,24 @@ photoDownloadBtn.addEventListener('click', function() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         showNotification('Photo downloaded successfully!');
+    }
+});
+
+// Photo delete functionality
+photoDeleteBtn.addEventListener('click', function() {
+    if (uploadedPhoto) {
+        // Reset to default photo
+        profileImage.src = defaultPhotoUrl;
+        uploadedPhoto = null;
+        
+        // Hide download and delete buttons
+        photoDownloadBtn.style.display = 'none';
+        photoDeleteBtn.style.display = 'none';
+        
+        // Clear the file input
+        photoUpload.value = '';
+        
+        showNotification('Photo deleted successfully!');
     }
 });
 
@@ -205,34 +226,55 @@ document.head.appendChild(style);
 // Initialize particles
 createParticles();
 
-// Enhanced Contact form with better error handling
+// Enhanced Contact form with better error handling and responsiveness
 const contactForm = document.getElementById('contact-form');
 contactForm.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const message = document.getElementById('message').value.trim();
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const messageInput = document.getElementById('message');
     
-    // Enhanced validation
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const message = messageInput.value.trim();
+    
+    // Enhanced validation with visual feedback
     if (!name || !email || !message) {
         showNotification('Please fill in all fields.', 'error');
+        highlightEmptyFields();
         return;
     }
     
     if (!isValidEmail(email)) {
         showNotification('Please enter a valid email address.', 'error');
+        emailInput.style.borderColor = '#ff4757';
+        setTimeout(() => {
+            emailInput.style.borderColor = '';
+        }, 3000);
         return;
     }
     
     if (message.length < 10) {
         showNotification('Please enter a message with at least 10 characters.', 'error');
+        messageInput.style.borderColor = '#ff4757';
+        setTimeout(() => {
+            messageInput.style.borderColor = '';
+        }, 3000);
         return;
     }
     
-    // Create enhanced mailto link
-    const subject = encodeURIComponent(`Portfolio Contact: Message from ${name}`);
-    const body = encodeURIComponent(`Hello Swathi,
+    // Show loading state
+    const submitBtn = contactForm.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    submitBtn.disabled = true;
+    
+    // Simulate processing time for better UX
+    setTimeout(() => {
+        // Create enhanced mailto link
+        const subject = encodeURIComponent(`Portfolio Contact: Message from ${name}`);
+        const body = encodeURIComponent(`Hello Swathi,
 
 You have received a new message from your portfolio website:
 
@@ -245,30 +287,42 @@ ${message}
 ---
 This message was sent from your portfolio contact form.
 Please reply to: ${email}`);
-    
-    const mailtoLink = `mailto:swathiuppunuthla35@gmail.com?subject=${subject}&body=${body}`;
-    
-    // Try to open email client
-    try {
-        const mailWindow = window.open(mailtoLink);
         
-        // Check if the window opened successfully
-        setTimeout(() => {
-            if (mailWindow && !mailWindow.closed) {
-                // Email client opened successfully
-                contactForm.reset();
-                showNotification('Thank you for your message! Your email client should open now.', 'success');
-            } else {
-                // Fallback for blocked popups
-                fallbackContactMethod(name, email, message);
-            }
-        }, 1000);
+        const mailtoLink = `mailto:swathiuppunuthla35@gmail.com?subject=${subject}&body=${body}`;
         
-    } catch (error) {
-        // Fallback if mailto fails
-        fallbackContactMethod(name, email, message);
-    }
+        // Try to open email client
+        try {
+            window.location.href = mailtoLink;
+            
+            // Reset form and show success message
+            contactForm.reset();
+            showNotification('Thank you for your message! Your email client should open now.', 'success');
+            
+        } catch (error) {
+            // Fallback if mailto fails
+            fallbackContactMethod(name, email, message);
+        }
+        
+        // Reset button state
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+        
+    }, 1500);
 });
+
+// Helper function to highlight empty fields
+function highlightEmptyFields() {
+    const fields = ['name', 'email', 'message'];
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+            field.style.borderColor = '#ff4757';
+            setTimeout(() => {
+                field.style.borderColor = '';
+            }, 3000);
+        }
+    });
+}
 
 function fallbackContactMethod(name, email, message) {
     // Create a formatted message for copy to clipboard

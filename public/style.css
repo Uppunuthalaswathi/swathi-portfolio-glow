@@ -685,9 +685,30 @@ body {
     gap: 0.5rem;
 }
 
+.photo-delete-btn {
+    background: linear-gradient(45deg, #ff4757, #ff6b7a);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .photo-upload-btn:hover, .photo-download-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+}
+
+.photo-delete-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
 }
 
 /* Enhanced Contact Form Responsiveness */
@@ -794,7 +815,7 @@ body {
         height: 100px;
     }
     
-    .photo-upload-btn, .photo-download-btn {
+    .photo-upload-btn, .photo-download-btn, .photo-delete-btn {
         padding: 0.4rem 0.8rem;
         font-size: 0.8rem;
     }
