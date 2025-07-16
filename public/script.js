@@ -226,7 +226,7 @@ document.head.appendChild(style);
 // Initialize particles
 createParticles();
 
-// Enhanced Contact form with better error handling and responsiveness
+// Enhanced Contact form with EmailJS integration
 const contactForm = document.getElementById('contact-form');
 contactForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -270,44 +270,37 @@ contactForm.addEventListener('submit', (e) => {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
     submitBtn.disabled = true;
     
-    // Simulate processing time for better UX
-    setTimeout(() => {
-        // Create enhanced mailto link
-        const subject = encodeURIComponent(`Portfolio Contact: Message from ${name}`);
-        const body = encodeURIComponent(`Hello Swathi,
-
-You have received a new message from your portfolio website:
-
-Name: ${name}
-Email: ${email}
-
-Message:
-${message}
-
----
-This message was sent from your portfolio contact form.
-Please reply to: ${email}`);
-        
-        const mailtoLink = `mailto:swathiuppunuthla35@gmail.com?subject=${subject}&body=${body}`;
-        
-        // Try to open email client
-        try {
-            window.location.href = mailtoLink;
-            
-            // Reset form and show success message
-            contactForm.reset();
-            showNotification('Thank you for your message! Your email client should open now.', 'success');
-            
-        } catch (error) {
-            // Fallback if mailto fails
-            fallbackContactMethod(name, email, message);
-        }
-        
-        // Reset button state
+    // Send email using EmailJS
+    const templateParams = {
+        from_name: name,
+        from_email: email,
+        message: message,
+        to_name: 'Swathi'
+    };
+    
+    // Try EmailJS first, then fallback to other methods
+    if (typeof emailjs !== 'undefined') {
+        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+            .then((response) => {
+                console.log('SUCCESS!', response.status, response.text);
+                contactForm.reset();
+                showNotification('Message sent successfully! I\'ll get back to you soon.', 'success');
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            })
+            .catch((error) => {
+                console.log('EmailJS FAILED...', error);
+                // Fallback to other methods
+                fallbackContactMethod(name, email, message);
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            });
+    } else {
+        // EmailJS not loaded, use fallback
+        fallbackContactMethod(name, email, message);
         submitBtn.innerHTML = originalBtnText;
         submitBtn.disabled = false;
-        
-    }, 1500);
+    }
 });
 
 // Helper function to highlight empty fields
